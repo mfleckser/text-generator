@@ -27,6 +27,10 @@ class LSTM:
     def softmax(x): # do the thing w max in case of big numbers, prolly not needed but its fancy
         return np.exp(x - max(x)) / np.exp(x - max(x)).sum()
 
+    @staticmethod
+    def id_from_prob(p):
+        return np.argmax(p)
+
     def feedforward(self, rxt, a_prev, c_prev): # rxt: raw input at time t
         xt = rxt / max(rxt) # normalize input so dot product doesn't go wild
         concat = np.concatenate((xt, a_prev))
@@ -44,4 +48,12 @@ class LSTM:
 
     def predict(self, rx, n): # rx: raw input (unpadded), n: number of predictions
         x = np.concatenate((np.full((seq_length - rx.shape[0], 1), 91), rx))
+        y = np.empty(n, dtype=np.int8)
+
+        for i in range(n):
+            next_char = LSTM.id_from_prob(self.feedforward(x, np.zeros(x.shape), np.zeros(x.shape)))
+            y[i] = next_char
+            x = np.concatenate((x[1:], np.array([[next_char]])))
+
+        return y
 
