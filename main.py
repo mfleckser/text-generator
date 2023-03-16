@@ -17,4 +17,4 @@ out = cell.feedforward(x, np.zeros(x.shape), np.zeros(x.shape))
 
 #print("".join(process.char_from_id(res, vocab + ["~"])))
 
-print("".join(process.char_from_id(cell.predict(x, 20), vocab + ["~"])))
+print("".join(process.char_from_id(cell.predict(x, 20)[0], vocab + ["~"])))
