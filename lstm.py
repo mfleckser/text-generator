@@ -1,45 +1,6 @@
-from abc import ABC, abstractmethod
 import numpy as np
 from process import seq_length
-
-
-class NeuralNetwork(ABC):
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def predict(self, x):
-        pass
-
-    @abstractmethod
-    def train(self, x, target):
-        pass
-
-    @property
-    @abstractmethod
-    def parameters(self):
-        pass
-
-    @staticmethod
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x)) # easter egg hello future people
-
-    @staticmethod
-    def softmax(x): # do the thing w max in case of big numbers, prolly not needed but its fancy
-        return np.exp(x - max(x)) / np.exp(x - max(x)).sum()
-
-    @staticmethod
-    def id_from_prob(p):
-        return np.argmax(p)
-
-    @staticmethod
-    def sparse_categorical_cross_entropy_loss(prediction, target):
-        target_probs = np.zeros(prediction.shape())
-        target_probs[target] = 1
-
-        cross_entropy = -np.sum(target_probs * np.log2(prediction))
-
-        return cross_entropy
+from neural_network import NeuralNetwork
 
 
 class LSTM(NeuralNetwork):
@@ -58,6 +19,8 @@ class LSTM(NeuralNetwork):
 
         self.Wy = np.random.random((len_vocab, input_size[0])) # wy not
         self.by = np.zeros((len_vocab, 1))
+
+        self.len_vocab = len_vocab
 
     @property
     def parameters(self):
@@ -92,9 +55,15 @@ class LSTM(NeuralNetwork):
 
         return yt, a_next, c_next, cache
 
-    def predict(self, rx, n): # rx: raw input (unpadded), n: number of predictions
+    def predict(self, rx, n, probs=False): # rx: raw input (unpadded), n: number of predictions
         x = np.concatenate((np.full((seq_length - rx.shape[0], 1), 91), rx))
-        y = np.empty(n, dtype=np.int8)
+        if probs:
+            out_shape = (n, self.len_vocab, 1)
+            out_type = np.float32
+        else:
+            out_shape = n
+            out_type = np.int8
+        y = np.empty(out_shape, dtype=out_type)
 
         a = np.zeros(x.shape)
         c = np.zeros(x.shape)
@@ -105,12 +74,39 @@ class LSTM(NeuralNetwork):
             next_char_prob, a, c, cache = self.feedforward(x, a, c)
 
             next_char = NeuralNetwork.id_from_prob(next_char_prob)
-            y[i] = next_char
+
+            if probs:
+                y[i] = next_char_prob
+            else:
+                y[i] = next_char
+
             x = np.concatenate((x[1:], np.array([[next_char]])))
 
             caches.append(cache)
 
         return y, caches
+
+    def find_gradients(self, x, target):
+        prediction, caches = self.predict(x, 1, probs=True)
+        pred = prediction[0]
+        a_next, c_next, a_prev, c_prev, ft, it, cct, ot, xt, parameters = caches[0]
+
+        loss = NeuralNetwork.sparse_categorical_cross_entropy_loss(pred, target)
+
+        # derivatives w.r.t loss
+
+        dy_unact = pred - target
+        da_next = dy_unact * parameters["Wy"]
+
+        dot = da_next * np.tanh(c_next) * ot * (1 - ot)
+        dc_next = da_next * (1 - np.tanh(c_next) ** 2)
+        dcct = dc_next * it * (1 - cct ** 2)
+        dit = dc_next * cct * it * (1 - it)
+        dft = dc_next * c_prev * ft (1 - ft)
+        dc_prev = dc_next * ft
+
+
+        print(loss)
 
     def train(self, x, target):
         pass
@@ -123,7 +119,6 @@ class Encoder(NeuralNetwork):
 
     def encode(self, x):
         return x * self.weights + self.biases
-    
+
     def train(self, x, target):
         pass
-

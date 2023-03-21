@@ -2,18 +2,17 @@ import numpy as np
 
 seq_length = 96
 
+
+def get_vocab(data):
+    return sorted(set(data))
+
+
 def load(path):
-    file = open(path, "r")
+    file = open(path, "r", encoding="utf-8")
     data = file.read()
-
-    vocab = sorted(set(data))
-
-    # id_from_char = np.vectorize(lambda c: vocab.index(c))
-    # char_from_id = np.vectorize(lambda id: vocab[id])
-
     file.close()
 
-    return data, vocab
+    return data
 
 
 def rid_from_char(c, vocab):
@@ -27,6 +26,9 @@ char_from_id = np.vectorize(rchar_from_id, excluded=[1])
 
 
 def get_batch(data, index):
-    return data[index : index + seq_length], data[index + 1 : index + seq_length + 1]
+    vocab = get_vocab(data)
 
+    x = np.array(list(data[index : index + seq_length]))
+    target = data[index + seq_length]
 
+    return id_from_char(x, vocab).reshape(seq_length, 1), id_from_char(target, vocab)

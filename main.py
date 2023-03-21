@@ -3,13 +3,13 @@ import numpy as np
 import process
 from lstm import LSTM
 
-data, vocab = process.load("./data.txt")
+data = process.load("./data.txt")
+vocab = process.get_vocab(data)
 
-s_input, target = process.get_batch(data, 0)
-x = process.id_from_char(np.array(list(s_input)), vocab).reshape(process.seq_length, 1)
+x, target = process.get_batch(data, 0)
 
 cell = LSTM(x.shape, len(vocab))
-out = cell.feedforward(x, np.zeros(x.shape), np.zeros(x.shape))
+#out = cell.feedforward(x, np.zeros(x.shape), np.zeros(x.shape))
 
 #print(process.char_from_id(out.argmax(), vocab))
 
@@ -17,4 +17,6 @@ out = cell.feedforward(x, np.zeros(x.shape), np.zeros(x.shape))
 
 #print("".join(process.char_from_id(res, vocab + ["~"])))
 
-print("".join(process.char_from_id(cell.predict(x, 20)[0], vocab + ["~"])))
+#print("".join(process.char_from_id(cell.predict(x, 20)[0], vocab + ["~"])))
+
+cell.find_gradients(x, target)
