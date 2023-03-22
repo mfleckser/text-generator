@@ -96,17 +96,40 @@ class LSTM(NeuralNetwork):
         # derivatives w.r.t loss
 
         dy_unact = pred - target
-        da_next = dy_unact * parameters["Wy"]
+        da_next = np.dot(dy_unact.T, parameters["Wy"]).T
 
         dot = da_next * np.tanh(c_next) * ot * (1 - ot)
         dc_next = da_next * (1 - np.tanh(c_next) ** 2)
         dcct = dc_next * it * (1 - cct ** 2)
         dit = dc_next * cct * it * (1 - it)
-        dft = dc_next * c_prev * ft (1 - ft)
+        dft = dc_next * c_prev * ft * (1 - ft)
         dc_prev = dc_next * ft
 
+        dx = parameters["Wf"] * dft + parameters["Wi"] * dit + parameters["Wc"] * dcct + parameters["Wo"] * dot
 
-        print(loss)
+        dWf = np.dot(dft, np.concatenate((xt, a_prev)).T)
+        dWi = np.dot(dit, np.concatenate((xt, a_prev)).T)
+        dWc = np.dot(dcct, np.concatenate((xt, a_prev)).T)
+        dWo = np.dot(dot, np.concatenate((xt, a_prev)).T)
+
+        dbf = dft
+        dbi = dit
+        dbc = dcct
+        dbo = dot
+        # hit the griddy every day and night
+        # eckel out here again
+        # leaving notes for myself tmr
+        # hello future self
+        # "Natalie always fucking wins I fucking hate everyone" - Isabel
+        # Goofy ahh march madness
+        # steak
+        # Isabel's a bot
+        # "What if I bit rn" - Leon
+        # we should eat cock or constantinople
+
+
+        print(dWf.shape)
+        print(parameters["Wf"].shape)
 
     def train(self, x, target):
         pass

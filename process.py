@@ -32,3 +32,12 @@ def get_batch(data, index):
     target = data[index + seq_length]
 
     return id_from_char(x, vocab).reshape(seq_length, 1), id_from_char(target, vocab)
+
+def get_batches(data):
+    vocab = get_vocab(data)
+
+    for i in range(len(data) - seq_length):
+        x = np.array(list(data[i : i + seq_length]))
+        target = data[i + seq_length]
+
+        yield id_from_char(x, vocab).reshape(seq_length, 1), id_from_char(target, vocab)
