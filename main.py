@@ -13,10 +13,15 @@ cell = LSTM(x.shape, len(vocab))
 
 #print(process.char_from_id(out.argmax(), vocab))
 
-#res = cell.predict(x[:-1], 3).flatten()
+res = cell.predict(x[:-1], 6)[0].flatten()
 
-#print("".join(process.char_from_id(res, vocab + ["~"])))
+print("".join(process.char_from_id(res, vocab + ["~"])))
 
 #print("".join(process.char_from_id(cell.predict(x, 20)[0], vocab + ["~"])))
 
-cell.find_gradients(x, target)
+cell.train(data)
+
+
+res = cell.predict(x[:-1], 15)[0].flatten()
+print("".join(process.char_from_id(x[:-1].T[0], vocab + ["~"])), end="")
+print("".join(process.char_from_id(res, vocab + ["~"])), end="ENDDDD")

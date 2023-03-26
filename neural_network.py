@@ -14,7 +14,7 @@ class NeuralNetwork(ABC):
         pass
 
     @abstractmethod
-    def train(self, x, target):
+    def train(self, data):
         pass
 
     @property
@@ -24,7 +24,15 @@ class NeuralNetwork(ABC):
 
     @staticmethod
     def sigmoid(x):
-        return 1 / (1 + np.exp(-x)) # easter egg hello future people
+        output = np.empty(x.shape)
+        for i in range(len(x)):
+            val = x[i]
+            if val < 0:
+                output[i] = np.exp(val) / (1 + np.exp(val))
+            else:
+                output[i] = 1 / (1 + np.exp(-val)) # easter egg hello future people
+
+        return output
 
     @staticmethod
     def softmax(x): # do the thing w max in case of big numbers, prolly not needed but its fancy
@@ -39,6 +47,7 @@ class NeuralNetwork(ABC):
         target_probs = np.zeros(prediction.shape)
         target_probs[target] = 1
 
-        cross_entropy = -np.sum(target_probs * np.log2(prediction))
+        #cross_entropy = -np.sum(prediction * np.log2(target_probs + np.exp(-15)))
 
-        return cross_entropy
+        #return cross_entropy, target_probs
+        return target_probs
